@@ -7,3 +7,7 @@ node_modules/
 npm-debug.log*
 .npm
 .eslintcache
+
+# Python stuff
+.nox/
+__pycache__

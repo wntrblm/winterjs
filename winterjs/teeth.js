@@ -4,13 +4,16 @@
     Full text available at: https://opensource.org/licenses/MIT
 */
 
-export function teeth_encoded_length(src_len) {
-    return ((src_len + 4 - 1) / 4) * 5;
+export function encoded_length(src_len) {
+    if (src_len instanceof Uint8Array) {
+        src_len = src_len.length;
+    }
+    return (Math.floor((src_len + 4 - 1) / 4)) * 5;
 }
 
-export function teeth_encode(src) {
+export function encode(src) {
     const src_len = src.length;
-    let dst = new Uint8Array(teeth_encoded_length(src_len));
+    let dst = new Uint8Array(encoded_length(src_len));
     let src_idx = 0;
     let dst_idx = 0;
 
@@ -70,7 +73,7 @@ export function teeth_encode(src) {
     return dst;
 }
 
-export function teeth_decode(src) {
+export function decode(src) {
     const src_len = src.length;
     const dst_len = (src_len / 5) * 4;
     let dst = new Uint8Array(dst_len);
