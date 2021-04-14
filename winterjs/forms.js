@@ -4,13 +4,7 @@
     Full text available at: https://opensource.org/licenses/MIT
 */
 
-/* Returns a HTMLElement give the ID or the element itself. */
-function _e(x) {
-    if (typeof x === "string") {
-        return document.getElementById(x);
-    }
-    return x;
-}
+import {$e, $on} from "./utils.js";
 
 /*
     A UI helper for diplaying the value of an input.
@@ -30,23 +24,23 @@ function _e(x) {
 */
 export class ValueDisplay {
     constructor(elem, formatter, display_elem) {
-        this.elem = _e(elem);
+        this.elem = $e(elem);
 
         if (formatter === undefined) {
             formatter = (input) => input.value;
         }
         if (display_elem === undefined) {
-            display_elem = _e(`${this.elem.name}_value_display`);
+            display_elem = $e(`${this.elem.name}_value_display`);
         }
         if (typeof display_elem === "string") {
-            display_elem = _e(display_elem);
+            display_elem = $e(display_elem);
         }
 
         const update = () => {
             display_elem.innerText = formatter(this.elem);
         };
 
-        this.elem.addEventListener("input", update);
+        $on(elem, "input", update);
 
         // Call it once to update it from the default value.
         update();
@@ -64,7 +58,7 @@ export class ValueDisplay {
 */
 export class InputBinding {
     constructor(elem, data, key = undefined) {
-        this.elem = _e(elem);
+        this.elem = $e(elem);
 
         this.data = data;
 
@@ -78,11 +72,11 @@ export class InputBinding {
     }
 
     bind() {
-        this.elem.addEventListener("change", () => {
+        $on(this.elem, "change", () => {
             this.update_data();
         });
 
-        this.elem.addEventListener("data_update", () => {
+        $on(this.elem, "data_update", () => {
             this.update_value();
         });
 
@@ -123,7 +117,6 @@ export class MixMaxInputBinding {
         }
 
         this.data[this.key] = this.value_to_data(this.elem.value);
-        console.log(this.data);
     }
 }
 
@@ -156,7 +149,6 @@ export class CheckboxInputBinding extends InputBinding {
 
     update_data() {
         this.data[this.key] = this.elem.checked;
-        console.log(this.data);
     }
 }
 
