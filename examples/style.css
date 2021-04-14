@@ -1,0 +1,172 @@
+/*
+ * Globals
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Overpass:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap");
+
+/* Links */
+a,
+a:focus,
+a:hover {
+  color: #be2436;
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 1px;
+  text-decoration-color: #f998a3;
+}
+
+a:hover {
+  color: #27787f;
+  text-decoration-color: #98d1d6;
+}
+
+a[href*="//"]:after
+{
+  content: "\2197";
+  vertical-align: super;
+  font-size: 50%;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.hidden {
+  display: none;
+}
+
+.container {
+  max-width: 80ch;
+  font-size: 130%;
+}
+
+/*
+  * Base structure
+  */
+
+html,
+body {
+  height: 100%;
+  background: #fff;
+  font-family: "Overpass", sans-serif;
+}
+body {
+  color: #333;
+  text-align: left;
+}
+
+/* Page */
+
+h1 {
+  font-size: 180%;
+}
+h2 {
+  font-size: 160%;
+}
+h3 {
+  font-size: 120%;
+}
+h4 {
+  font-size: 100%;
+}
+h5 {
+  font-size: 100%;
+}
+h6 {
+  font-size: 100%;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #5f419f;
+  margin-top: 1.2em;
+  margin-bottom: 1em;
+  font-weight: 700;
+}
+
+code {
+  font-size: 100%;
+  color: white;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+code:not(pre code) {
+  background-color: #27787f;
+  padding: 0px 4px;
+  border-radius: 5px;
+}
+
+pre {
+  font-family: "IBM Plex Mono", monospace;
+  padding: 20px;
+  margin: 2em 0 !important;
+}
+
+article {
+  margin-top: 2em;
+}
+
+article blockquote {
+  border-left: 0.1em solid #8768bb;
+  padding-left: 1em;
+  color: #545b62;
+  margin: 2em 0;
+}
+
+article .admonition .admonition-title {
+  font-weight: bold;
+  font-size: 120%;
+}
+
+article .admonition {
+  padding: 1.5em 1em 1.2em 1em;
+  border-left: 8px solid #999;
+  color: white;
+  margin: 2em 0;
+  font-weight: normal;
+}
+
+article .admonition a {
+  color: white;
+  text-decoration-color: white;
+  font-weight: bold;
+}
+
+article .admonition.note {
+  border-left-color: #408d94;
+  background-color: #27787f;
+}
+article .admonition.note .admonition-title::before {
+  content: "💡 ";
+}
+
+article .admonition.warning {
+  border-left-color: #d94a5b;
+  background-color: #be2436;
+}
+article .admonition.warning .admonition-title::before {
+  content: "⚠️ ";
+}
+
+article img {
+  width: 90%;
+  margin: 0 auto;
+  display: block;
+  padding: 2em 0;
+}
+
+article img.float-right,
+article img.float-left {
+  width: 50%;
+  padding: 2em 0.5em;
+}
+
+.image-caption {
+  display: block;
+  text-align: center;
+  margin-top: -2em;
+  margin-bottom: 3em;
+}

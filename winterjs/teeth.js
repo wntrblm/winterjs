@@ -1,3 +1,9 @@
+/*
+    Copyright (c) 2021 Alethea Katherine Flowers.
+    Published under the standard MIT License.
+    Full text available at: https://opensource.org/licenses/MIT
+*/
+
 export function teeth_encoded_length(src_len) {
     return ((src_len + 4 - 1) / 4) * 5;
 }
