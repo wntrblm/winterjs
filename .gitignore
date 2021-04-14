@@ -1,0 +1,9 @@
+# Logs
+logs
+*.log
+
+# Node shit
+node_modules/
+npm-debug.log*
+.npm
+.eslintcache
