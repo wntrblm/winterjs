@@ -1,6 +1,9 @@
-from glob import glob
-
 import nox
+
+@nox.session(python=False)
+def lint(session):
+    session.chdir("winterjs")
+    session.run("eslint", "*.js", external=True)
 
 @nox.session(python=False)
 def tests(session):
