@@ -8,7 +8,7 @@
 
 * [`winterjs/forms.js`](winterjs/forms.js) provides rudimentary databinding between form controls and a data object.
 * [`winterjs/midi.js`](winterjs/midi.js) provides some helpers for using the Web MIDI API.
-* [`winterjs/oscilloscope.js`](winterjs/oscilloscope.js) provides a neat audio player widget, see [examples/oscilloscope.html].
+* [`winterjs/oscilloscope.js`](winterjs/oscilloscope.js) provides a neat audio player widget, see [examples/oscilloscope.html](examples/oscilloscope.html).
 * [`winterjs/teeth.js`](winterjs/teeth.js) provides *Teeth* encoding which is used to encode binary data across MIDI SysEx messages. There are matching implementation in [Python](https://github.com/wntrblm/wintertools/blob/main/wintertools/teeth.py) and [C](https://github.com/wntrblm/libwinter/blob/main/src/teeth.c).
 * [`winterjs/utils.js`](winterjs/utils.js) provides some common utilities and helpers.
 
