@@ -101,7 +101,7 @@ export class InputBinding {
 }
 
 /* Two-way databinding for number inputs with a min & max property. */
-export class MixMaxInputBinding {
+export class MixMaxInputBinding extends InputBinding {
     update_data() {
         const min = parseFloat(this.elem.min);
         const max = parseFloat(this.elem.max);
