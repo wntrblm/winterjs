@@ -4,7 +4,7 @@
     Full text available at: https://opensource.org/licenses/MIT
 */
 
-import {$e, $on} from "./utils.js";
+import { $e, $on } from "./utils.js";
 
 /*
     A UI helper for diplaying the value of an input.
@@ -72,7 +72,7 @@ export class InputBinding {
     }
 
     bind() {
-        $on(this.elem, "change", () => {
+        $on(this.elem, "input", () => {
             this.update_data();
         });
 
@@ -127,9 +127,10 @@ export class IntInputBinding extends MixMaxInputBinding {
 }
 
 export class FloatInputBinding extends MixMaxInputBinding {
-    constructor(elem, data, key, precision = 2) {
+    constructor(elem, data, key, precision) {
         super(elem, data, key);
-        this.precision = precision;
+        this.precision = parseInt(precision || 2);
+        this.update_value();
     }
 
     value_to_data(value) {
