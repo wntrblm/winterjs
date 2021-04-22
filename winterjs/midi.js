@@ -13,17 +13,17 @@ export default class MIDI {
         let access = await navigator.requestMIDIAccess({ sysex: true });
 
         for (const port of access.inputs.values()) {
-            if (port.name === self.port_name) {
-                self.input = port;
+            if (port.name === this.port_name) {
+                this.input = port;
             }
         }
         for (const port of access.outputs.values()) {
-            if (port.name === self.port_name) {
-                self.output = port;
+            if (port.name === this.port_name) {
+                this.output = port;
             }
         }
 
-        if (self.input == undefined || self.output == undefined) {
+        if (this.input == undefined || this.output == undefined) {
             throw `Unable to connect to ${this.port_name}`;
         }
     }
@@ -33,7 +33,7 @@ export default class MIDI {
     }
 
     async receive() {
-        const done = new Promise(function (resolve) {
+        const done = new Promise((resolve) => {
             this.input.onmidimessage = function (msg) {
                 resolve(msg);
             };
@@ -43,7 +43,7 @@ export default class MIDI {
     }
 
     async transact(data) {
-        const done = new Promise(function (resolve) {
+        const done = new Promise((resolve) => {
             this.input.onmidimessage = function (msg) {
                 resolve(msg);
             };
