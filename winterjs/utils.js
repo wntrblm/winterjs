@@ -5,9 +5,7 @@
 */
 
 export function Uint8Array_to_hex(buf) {
-    return Array.prototype.map
-        .call(buf, (x) => ("00" + x.toString(16)).slice(-2))
-        .join("");
+    return Array.prototype.map.call(buf, (x) => ("00" + x.toString(16)).slice(-2)).join("");
 }
 
 /* Returns a HTMLElement give the ID or the element itself. */
@@ -16,6 +14,32 @@ export function $e(x) {
         return document.getElementById(x);
     }
     return x;
+}
+
+export function $s(x, y) {
+    if (typeof x === "string") {
+        return document.querySelectorAll(x);
+    } else {
+        return x.querySelectorAll(y);
+    }
+}
+
+export function $make(tag_name, properties={}) {
+    const elem = document.createElement(tag_name);
+    for(const [name, value] of Object.entries(properties)) {
+        if(name === "children") {
+            for(const child of value) {
+                elem.appendChild(child);
+            }
+            continue;
+        }
+        if(name === "innerText") {
+            elem.innerText = value;
+            continue;
+        }
+        elem.setAttribute(name, value);
+    }
+    return elem;
 }
 
 /* Adds an event listener. */
@@ -33,11 +57,19 @@ export class TemplateElement {
         this._parent = this._elem.parentNode;
     }
 
+    hide() {
+        this._parent.classList.add("hidden");
+    }
+
+    show() {
+        this._parent.classList.remove("hidden");
+    }
+
     render(ctx) {
         let content = this._elem.innerHTML;
-        content = content.replace(/\${(.*?)}/g, (_, g) =>
-            ObjectHelpers.get_property_by_path(ctx, g)
-        );
+        content = content.replace(/\${(.*?)}/g, (_, g) => {
+            return ObjectHelpers.get_property_by_path(ctx, g) || "";
+        });
         const temp = document.createElement("template");
         temp.innerHTML = content;
         return temp.content.cloneNode(true);
@@ -55,7 +87,8 @@ export class TemplateElement {
 
     render_all_to_parent(ctxes) {
         DOMHelpers.remove_all_children(this._parent);
-        for (const ctx of ctxes) {
+        for (const [n, ctx] of ctxes.entries()) {
+            ctx.$index = n;
             this._parent.appendChild(this.render(ctx));
         }
     }
@@ -129,16 +162,10 @@ export class ObjectReviver {
 
     revive() {
         return (key, value) => {
-            if (
-                value === null ||
-                value === undefined ||
-                typeof value !== "object"
-            ) {
+            if (value === null || value === undefined || typeof value !== "object") {
                 return value;
             }
-            for (const [sentinel_key, revive] of Object.entries(
-                this._revivers
-            )) {
+            for (const [sentinel_key, revive] of Object.entries(this._revivers)) {
                 if (Object.prototype.hasOwnProperty.call(value, sentinel_key)) {
                     return revive(value);
                 }
