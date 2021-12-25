@@ -15,9 +15,8 @@ import { $e, $on, DOMHelpers, ObjectHelpers } from "./utils.js";
     To go the other direction - update the form when `data[key]` changes, call
     `update_value()`.
 
-    The html structure needed for this matches bulma's. If there's a .field
-    container with a .validation-message somewhere, this will show validation
-    messages there.
+    This can also display validation messages. It looks for an element with
+    data-validation-message-for="${id|name}" within the containing <form>.
 */
 export class InputBinding {
     constructor(elem, data, key = undefined) {
@@ -52,12 +51,8 @@ export class InputBinding {
         return value;
     }
 
-    update_value(validate = true) {
-        const value = ObjectHelpers.get_property_by_path(
-            this.data,
-            this.key,
-            false
-        );
+    update_value() {
+        const value = ObjectHelpers.get_property_by_path(this.data, this.key, false);
         if (value === undefined) {
             return;
         }
@@ -66,12 +61,7 @@ export class InputBinding {
     }
 
     update_data() {
-        ObjectHelpers.set_property_by_path(
-            this.data,
-            this.key,
-            this.value_to_data(this.elem.value),
-            false
-        );
+        ObjectHelpers.set_property_by_path(this.data, this.key, this.value_to_data(this.elem.value), false);
     }
 
     get validation_enabled() {
@@ -88,11 +78,11 @@ export class InputBinding {
 
     setup_validation() {
         this.validation_enabled = false;
-        this.field_container = this.elem.closest(".field");
-        if (this.field_container !== null) {
-            this.validation_message = this.field_container.querySelector(
-                ".validation-message"
-            );
+        const form = this.elem.closest("form");
+        if (form !== null) {
+            this.validation_message =
+                form.querySelector(`[data-validation-message-for="${this.elem.id}"]`) ||
+                form.querySelector(`[data-validation-message-for="${this.elem.name}"]`);
         }
 
         $on(this.elem, "blur", () => {
@@ -148,12 +138,7 @@ export class MixMaxInputBinding extends InputBinding {
             }
         }
 
-        ObjectHelpers.set_property_by_path(
-            this.data,
-            this.key,
-            this.value_to_data(this.elem.value),
-            false
-        );
+        ObjectHelpers.set_property_by_path(this.data, this.key, this.value_to_data(this.elem.value), false);
     }
 }
 
@@ -182,20 +167,11 @@ export class FloatInputBinding extends MixMaxInputBinding {
 /* Two-way databinding for checkbox inputs.  */
 export class CheckboxInputBinding extends InputBinding {
     update_value() {
-        this.elem.checked = ObjectHelpers.get_property_by_path(
-            this.data,
-            this.key
-        )
-            ? true
-            : false;
+        this.elem.checked = ObjectHelpers.get_property_by_path(this.data, this.key) ? true : false;
     }
 
     update_data() {
-        ObjectHelpers.set_property_by_path(
-            this.data,
-            this.key,
-            this.elem.checked
-        );
+        ObjectHelpers.set_property_by_path(this.data, this.key, this.elem.checked);
     }
 }
 
@@ -203,16 +179,13 @@ export class CheckboxInputBinding extends InputBinding {
 export class SelectInputBinding extends InputBinding {
     constructor(elem, data, options) {
         super(elem, data);
-        this.type = elem.dataset.bindingType;
+        this.type = elem.dataset.bindType;
         this.placeholder = this.elem.getAttribute("placeholder");
 
         if (options === undefined) {
-            const options_key = elem.dataset.bindingOptions;
+            const options_key = elem.dataset.bindOptions;
             if (options_key !== undefined) {
-                this.options = ObjectHelpers.get_property_by_path(
-                    data,
-                    options_key
-                );
+                this.options = ObjectHelpers.get_property_by_path(data, options_key);
                 this.update_options();
             }
         } else {
@@ -250,8 +223,6 @@ export class SelectInputBinding extends InputBinding {
             return;
         }
 
-        console.log("placeholding");
-
         const update_class = () => {
             if (this.elem.value === "") {
                 this.elem.classList.add("placeholder");
@@ -282,16 +253,86 @@ export class SelectInputBinding extends InputBinding {
 }
 
 /*
+    A UI helper for diplaying the value of an input.
+
+    This is useful for range or number displays that want to show their value.
+
+    Example HTML structure:
+
+        <input name="range_example" type="range" value="0.6" step="0.01" min="0.33" max="1.0" />
+        <span class="form-unit">
+            <span data-display-value-for="range_example"></span> percent
+        </span>
+
+    `data-display-format` can be:
+
+    - `float`, with `data-display-precision` controlling rounding.
+    - `percent`
+
+    If advanced formatting is needed, use `data-display-formatter`:
+
+        data-display-formatter="input.valueAsNumber * 2"
+*/
+export class ValueDisplay {
+    constructor(display_elem, formatter = null, target_elem = null) {
+        this.display_elem = $e(display_elem);
+
+        if (target_elem) {
+            target_elem = $e(target_elem);
+        } else {
+            const target_id = this.display_elem.dataset.displayValueFor;
+            target_elem = $e(target_id) || document.querySelector(`[name="${target_id}"]`);
+        }
+        if (!target_elem) {
+            console.error("Could not find target element for ValueDisplay", this.display_elem);
+        }
+        this.target_elem = target_elem;
+
+        this.setup_formatter(formatter);
+
+        $on(target_elem, "input", () => this.update());
+        this.update();
+    }
+
+    setup_formatter(formatter) {
+        if (formatter) {
+            this.formatter = formatter;
+            return;
+        }
+        switch (this.display_elem.dataset.displayFormat) {
+            case "float": {
+                let precision = parseInt(this.display_elem.dataset.displayPrecision, 10) || 2;
+                this.formatter = (input) => input.valueAsNumber.toFixed(precision);
+                break;
+            }
+            case "percent":
+                this.formatter = (input) => Math.round(input.value * 100);
+                break;
+            default:
+                this.formatter = (input) => input.value;
+                break;
+        }
+        if (this.display_elem.dataset.displayFormatter) {
+            this.formatter = new Function(
+                "input",
+                `"use strict"; return ${this.display_elem.dataset.displayFormatter}`
+            );
+        }
+    }
+
+    update() {
+        this.display_elem.innerText = this.formatter(this.target_elem);
+    }
+}
+
+/*
     Bind the controls in the given `form` to the given `data`.
 
-    The form controls must have a `data-binding-type` attribute with one of the
-    following values:
+    The form controls must have a `data-bind` attribute to be wired up. For
+    input type="text" the `data-bind-type` attribute can be set to `text`, `int`,
+    or `float`.
 
-    * text
-    * int
-    * float
-    * checkbox
-    * select
+    Also binds any value displays (elements with `data-display-value-for`).
 */
 export class Form {
     constructor(form_elem, data) {
@@ -302,6 +343,7 @@ export class Form {
 
         this._setup_submit();
         this._bind_all(data);
+        this._bind_all_displays();
     }
 
     _setup_submit() {
@@ -319,9 +361,7 @@ export class Form {
     }
 
     _bind_all(data) {
-        for (const elem of this.elem.querySelectorAll(
-            "input[data-binding-type], select[data-binding-type], textarea[data-binding-type]"
-        )) {
+        for (const elem of this.elem.querySelectorAll("input[data-bind], select[data-bind], textarea[data-bind]")) {
             this.bind_one(elem, data);
         }
     }
@@ -329,33 +369,32 @@ export class Form {
     bind_one(elem, data) {
         let binding = null;
 
-        switch (elem.dataset.bindingType) {
-            case "text":
-                binding = new TextInputBinding(elem, data);
-                break;
-
-            case "int":
-                if (elem.tagName === "SELECT") {
-                    binding = new IntInputBinding(elem, data);
+        switch (elem.tagName) {
+            case "INPUT": {
+                if (elem.type === "checkbox") {
+                    binding = new CheckboxInputBinding(elem, data);
                 } else {
-                    binding = new SelectInputBinding(elem, data);
+                    switch (elem.dataBindType) {
+                        case "int":
+                            binding = new IntInputBinding(elem, data);
+                            break;
+                        case "float":
+                            binding = new FloatInputBinding(elem, data);
+                            break;
+                        default:
+                            binding = new TextInputBinding(elem, data);
+                            break;
+                    }
                 }
                 break;
+            }
 
-            case "float":
-                binding = new FloatInputBinding(
-                    elem,
-                    data,
-                    undefined,
-                    elem.dataset.bindingPrecision
-                );
+            case "TEXTAREA": {
+                binding = new TextInputBinding(elem, data);
                 break;
+            }
 
-            case "checkbox":
-                binding = new CheckboxInputBinding(elem, data);
-                break;
-
-            case "select": {
+            case "SELECT": {
                 binding = new SelectInputBinding(elem, data);
                 break;
             }
@@ -364,14 +403,18 @@ export class Form {
         }
 
         if (binding === null) {
-            console.error(
-                `Unimplemented binding type ${elem.dataset.bindingType}`
-            );
+            console.error(`Unimplemented databinding for element`, elem);
             return;
         }
 
         this.bindings.push(binding);
         this.fields[binding.name] = binding;
+    }
+
+    _bind_all_displays() {
+        for (const elem of this.elem.querySelectorAll("[data-display-value-for]")) {
+            new ValueDisplay(elem);
+        }
     }
 
     /*
@@ -389,87 +432,23 @@ export class Form {
         return this.elem.checkValidity();
     }
 
+    set custom_validity(val) {
+        if (val) {
+            this.elem.classList.remove("is-invalid");
+        } else {
+            this.elem.classList.add("is-invalid");
+        }
+    }
+
+    get custom_validity() {
+        return !this.elem.classList.contains("is-invalid");
+    }
+
     get classList() {
         return this.elem.classList;
     }
 
     addEventListener(event, callback) {
         this.elem.addEventListener(event, callback);
-    }
-}
-
-/*
-    A UI helper for diplaying the value of an input.
-
-    This is useful for range or number displays that want to show their value.
-
-    Example HTML structure:
-
-        <input name="range_example" type="range" value="0.6" step="0.01" min="0.33" max="1.0" />
-        <span class="form-unit">
-            <span id="range_example_value_display"></span> percent
-        </span>
-
-    And JS usage:
-
-        new ValueDisplay(document.querySelector("input[name=range_example]"), (elem) => elem.value);
-*/
-export class ValueDisplay {
-    constructor(elem, formatter, display_elem) {
-        this.elem = $e(elem);
-
-        if (formatter === undefined) {
-            formatter = (input) => input.value;
-        }
-        if (display_elem === undefined) {
-            display_elem = $e(`${this.elem.name}_value_display`);
-        }
-        if (typeof display_elem === "string") {
-            display_elem = $e(display_elem);
-        }
-
-        const update = () => {
-            display_elem.innerText = formatter(this.elem);
-        };
-
-        $on(elem, "input", update);
-
-        // Call it once to update it from the default value.
-        update();
-    }
-}
-
-/*
-    Enables value displays for all input elements with a `data-value-display`
-    property.
-*/
-export function bind_value_displays(form) {
-    for (const elem of form.querySelectorAll("[data-value-display]")) {
-        switch (elem.dataset.valueDisplay) {
-            case "":
-                new ValueDisplay(elem);
-                break;
-            case "percent":
-                new ValueDisplay(elem, (input) =>
-                    Math.round(input.value * 100)
-                );
-                break;
-            case "float":
-                new ValueDisplay(elem, (input) =>
-                    input.valueAsNumber.toFixed(
-                        elem.dataset.valueDisplayPrecision
-                    )
-                );
-                break;
-            default:
-                new ValueDisplay(
-                    elem,
-                    new Function(
-                        "input",
-                        `"use strict"; return ${elem.dataset.valueDisplay}`
-                    )
-                );
-                break;
-        }
     }
 }
