@@ -4,7 +4,7 @@
     Full text available at: https://opensource.org/licenses/MIT
 */
 
-import { $s, $on, $make } from "./winterjs/utils.js";
+import { $s, $on, $make } from "./utils.js";
 import { Renderer } from "./pcbrender.js";
 
 async function fetch_pcb_data(path) {
