@@ -1,0 +1,28 @@
+.winter-audio-player {
+    max-width: 100%;
+    background-color: #408D94;
+    color: white;
+    padding: 3.5rem 0;
+}
+
+.winter-audio-player.is-loaded {
+    padding: 1rem 0;
+}
+
+.winter-audio-player audio {
+    display: block;
+    width: 90%;
+    margin: 1em auto;
+}
+
+.winter-audio-player p {
+    text-align: center;
+    margin: 0.5rem;
+}
+
+.winter-audio-player canvas {
+    display: block;
+    background-color: none;
+    width: 100%;
+    margin: 0.5rem 0;
+}
