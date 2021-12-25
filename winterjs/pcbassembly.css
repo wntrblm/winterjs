@@ -4,13 +4,6 @@
     Full text available at: https://opensource.org/licenses/MIT
 */
 
-.pcb-assembly canvas {
-    display: block;
-    width: 100%;
-    background: lightpink;
-    border-radius: 15px;
-    margin-bottom: 1em;
-}
 .pcb-assembly {
     --edge-cuts: #ff99ce;
     --board: #ffb9dd;
@@ -20,6 +13,16 @@
     --silk: black;
     --highlight-stroke: var(--color-alt-cyan-3);
     --highlight-fill: rgba(0, 200, 255, 0.3);
+}
+.pcb-assembly canvas {
+    display: block;
+    width: 100%;
+    background: lightpink;
+    border-radius: 15px;
+    margin-bottom: 1em;
+}
+.pcb-assembly canvas.back {
+    transform: scaleX(-1);
 }
 .pcb-assembly .bom-table td {
     width: auto;

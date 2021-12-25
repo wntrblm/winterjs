@@ -248,7 +248,6 @@ class Draw {
         }
     }
 
-
     draw_pad(pad, color, outline) {
         const ctx = this.ctx;
 
@@ -323,20 +322,22 @@ class Draw {
         }
     }
 
-    footprints(footprints, layer, highlighted_footprints = {}, pin_one_highlighted_footprints = {}) {
+    footprints(
+        footprints,
+        layer,
+        highlighted_footprints = {},
+        pin_one_highlighted_footprints = {}
+    ) {
         const ctx = this.ctx;
         ctx.lineWidth = 1 / 4;
 
         for (var i = 0; i < footprints.length; i++) {
             var mod = footprints[i];
             var highlighted = highlighted_footprints[mod.ref] ? true : false;
-            var pin_one_highlighted = pin_one_highlighted_footprints[mod.ref] ? true : false;
-            this.footprint(
-                layer,
-                mod,
-                highlighted,
-                pin_one_highlighted,
-            );
+            var pin_one_highlighted = pin_one_highlighted_footprints[mod.ref]
+                ? true
+                : false;
+            this.footprint(layer, mod, highlighted, pin_one_highlighted);
         }
     }
 
@@ -420,7 +421,7 @@ class Draw {
 
     make_pad_path(pad) {
         if (pad.path2d) {
-            return pad.path2d
+            return pad.path2d;
         }
 
         if (pad.shape == "rect") {
@@ -462,15 +463,17 @@ class Colors {
             "pin1",
             "silk",
             "highlight-stroke",
-            "highlight-fill"
-        ]
+            "highlight-fill",
+        ];
 
         const style = window.getComputedStyle(elem);
 
-        for(const name of color_names) {
+        for (const name of color_names) {
             const property_name = name.replace("-", "_");
             const css_name = `--${name}`;
-            this[property_name] = (style.getPropertyValue(css_name) || "red").trim();
+            this[property_name] = (
+                style.getPropertyValue(css_name) || "red"
+            ).trim();
         }
     }
 }
@@ -481,11 +484,19 @@ export class Renderer {
         this.pcb_data = pcb_data;
         this.font = new Font(pcb_data.font_data);
         this.colors = new Colors(elem);
+        this.rotate = elem.dataset.pcbRotate !== undefined;
+        this._angle = 0;
 
         this.width =
             this.pcb_data.edges_bbox.maxx - this.pcb_data.edges_bbox.minx;
         this.height =
             this.pcb_data.edges_bbox.maxy - this.pcb_data.edges_bbox.miny;
+
+        if (this.rotate) {
+            const height = this.height;
+            this.height = this.width;
+            this.width = height;
+        }
 
         this.highlighted = {};
         this.pin_one_highlighted = {};
@@ -496,7 +507,7 @@ export class Renderer {
 
     highlight(refs) {
         this.highlighted = {};
-        for(const ref of refs) {
+        for (const ref of refs) {
             this.highlighted[ref] = true;
         }
         this.draw();
@@ -504,7 +515,7 @@ export class Renderer {
 
     highlight_pin_one(refs) {
         this.pin_one_highlighted = {};
-        for(const ref of refs) {
+        for (const ref of refs) {
             this.pin_one_highlighted[ref] = true;
         }
         this.draw();
@@ -514,19 +525,20 @@ export class Renderer {
 
     make_canvases() {
         this.front = new Draw(
-            this.make_canvas(this.elem, this.width, this.height),
+            this.make_canvas(this.elem, this.width, this.height,"front"),
             this.font,
             this.colors
         );
         this.back = new Draw(
-            this.make_canvas(this.elem, this.width, this.height),
+            this.make_canvas(this.elem, this.width, this.height, "back"),
             this.font,
             this.colors
         );
     }
 
-    make_canvas(parent, width, height, scale = 10) {
+    make_canvas(parent, width, height, class_, scale = 10) {
         const canvas = document.createElement("canvas");
+        canvas.classList.add(class_);
         canvas.width = width * window.devicePixelRatio * scale;
         canvas.height = height * window.devicePixelRatio * scale;
         canvas.dataset.scale = scale;
@@ -540,14 +552,26 @@ export class Renderer {
         this.set_canvas_transform(this.front.canvas);
         this.front.clear();
         this.front.items(this.pcb_data.drawings.silkscreen.F, this.colors.silk);
-        this.front.footprints(this.pcb_data.footprints, "F", this.highlighted, this.pin_one_highlighted);
+        this.front.footprints(
+            this.pcb_data.footprints,
+            "F",
+            this.highlighted,
+            this.pin_one_highlighted
+        );
         this.front.items(this.pcb_data.edges, this.colors.edge_cuts);
 
         this.set_canvas_transform(this.back.canvas, true);
         this.back.clear();
         this.back.items(this.pcb_data.drawings.silkscreen.B, this.colors.silk);
-        this.back.footprints(this.pcb_data.footprints, "B", this.highlighted, this.pin_one_highlighted);
+        this.back.footprints(
+            this.pcb_data.footprints,
+            "B",
+            this.highlighted,
+            this.pin_one_highlighted
+        );
         this.back.items(this.pcb_data.edges, this.colors.edge_cuts);
+
+        setTimeout(() => this.draw(), 200);
     }
 
     set_canvas_transform(canvas, mirror) {
@@ -557,17 +581,16 @@ export class Renderer {
             canvas.dataset.scale * window.devicePixelRatio,
             canvas.dataset.scale * window.devicePixelRatio
         );
-        if (mirror) {
-            ctx.scale(-1, 1);
-            ctx.translate(
-                -(this.width + this.pcb_data.edges_bbox.minx),
-                -this.pcb_data.edges_bbox.miny
-            );
-        } else {
-            ctx.translate(
-                -this.pcb_data.edges_bbox.minx,
-                -this.pcb_data.edges_bbox.miny
-            );
+        if (this.rotate) {
+            const x = this.width / 2;
+            const y = this.height / 2;
+            ctx.translate(x, y);
+            ctx.rotate(deg2rad(90));
+            ctx.translate(-y, -x);
         }
+        ctx.translate(
+            -this.pcb_data.edges_bbox.minx,
+            -this.pcb_data.edges_bbox.miny
+        );
     }
 }
