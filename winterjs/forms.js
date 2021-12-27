@@ -58,6 +58,7 @@ export class InputBinding {
         }
         this.elem.value = this.data_to_value(value);
         this.update_validation();
+        this.elem.dispatchEvent(new Event("winterjs:update", {bubbles: false}));
     }
 
     update_data() {
@@ -168,6 +169,7 @@ export class FloatInputBinding extends MixMaxInputBinding {
 export class CheckboxInputBinding extends InputBinding {
     update_value() {
         this.elem.checked = ObjectHelpers.get_property_by_path(this.data, this.key) ? true : false;
+        this.elem.dispatchEvent(new Event("winterjs:update", {bubbles: false}));
     }
 
     update_data() {
@@ -291,6 +293,7 @@ export class ValueDisplay {
         this.setup_formatter(formatter);
 
         $on(target_elem, "input", () => this.update());
+        $on(target_elem, "winterjs:update", () => this.update());
         this.update();
     }
 
@@ -374,7 +377,7 @@ export class Form {
                 if (elem.type === "checkbox") {
                     binding = new CheckboxInputBinding(elem, data);
                 } else {
-                    switch (elem.dataBindType) {
+                    switch (elem.dataset.bindType) {
                         case "int":
                             binding = new IntInputBinding(elem, data);
                             break;
