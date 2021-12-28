@@ -46,3 +46,12 @@
 .pcb-assembly .bom-table tr.complete {
     color: #888;
 }
+
+html.dark .pcb-assembly .bom-table tr:hover {
+    background-color: var(--color-alt-purple-2);
+    color: white;
+}
+
+html.dark  .pcb-assembly .bom-table tr.active {
+    color: black;
+}
